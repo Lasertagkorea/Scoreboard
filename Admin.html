@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>팀 점수 관리자</title>
+  <title>관리자 | 팀 점수 관리</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -12,7 +12,7 @@
       padding:20px;
     }
     h1 { text-align:center; }
-    .wrap { max-width:500px; margin:0 auto; }
+    .wrap { max-width:600px; margin:0 auto; }
     input, button, textarea {
       width:100%;
       padding:14px;
@@ -31,39 +31,65 @@
       cursor:pointer;
     }
     button:hover { background:#16a34a; }
+    .btn-gray {
+      background:#334155;
+    }
+    .btn-gray:hover {
+      background:#475569;
+    }
     .hint {
       margin-top:15px;
       font-size:13px;
       color:#94a3b8;
-      line-height:1.5;
+      line-height:1.6;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>📝 팀 점수 입력</h1>
+<div class="wrap">
+  <h1>📝 팀 점수 관리자</h1>
 
-    <input id="team" placeholder="팀명 (예: 레드팀)" />
-    <input id="score" type="number" placeholder="종합 점수" />
+  <button class="btn-gray" onclick="loadFromGithub()">
+    🔄 현재 점수 불러오기
+  </button>
 
-    <button onclick="addTeam()">팀 추가 / 수정</button>
+  <input id="team" placeholder="팀명 (예: 레드팀)" />
+  <input id="score" type="number" placeholder="종합 점수" />
 
-    <textarea id="output" rows="10" placeholder="여기에 JSON이 생성됩니다"></textarea>
+  <button onclick="addOrUpdate()">팀 추가 / 점수 수정</button>
 
-    <div class="hint">
-      ✔ 팀명과 점수 입력 후 버튼 클릭<br>
-      ✔ 아래 생성된 JSON 전체 복사<br>
-      ✔ GitHub의 <b>scores.json</b>에 붙여넣고 저장<br>
-      ✔ 전광판은 5초 이내 자동 반영
-    </div>
+  <textarea id="output" rows="12"
+    placeholder="최종 JSON이 여기에 생성됩니다"></textarea>
+
+  <div class="hint">
+    ✔ 점수 수정 후 아래 JSON 전체 복사<br>
+    ✔ GitHub → <b>data/scores.json</b>에 붙여넣기<br>
+    ✔ Commit 하면 전광판 자동 반영
   </div>
+</div>
 
 <script>
+const DATA_URL =
+  "https://raw.githubusercontent.com/아이디/저장소명/main/data/scores.json";
+
 let teams = [];
 
-function addTeam() {
-  const team = document.getElementById('team').value.trim();
-  const score = Number(document.getElementById('score').value);
+// 1️⃣ GitHub에 있는 현재 점수 불러오기
+async function loadFromGithub() {
+  try {
+    const res = await fetch(DATA_URL + "?t=" + Date.now());
+    teams = await res.json();
+    renderJSON();
+    alert("현재 점수를 불러왔습니다");
+  } catch {
+    alert("점수 불러오기 실패");
+  }
+}
+
+// 2️⃣ 팀 추가 또는 수정
+function addOrUpdate() {
+  const team = document.getElementById("team").value.trim();
+  const score = Number(document.getElementById("score").value);
 
   if (!team || isNaN(score)) {
     alert("팀명과 점수를 정확히 입력하세요");
@@ -77,11 +103,15 @@ function addTeam() {
     teams.push({ team, score });
   }
 
-  document.getElementById('output').value =
-    JSON.stringify(teams, null, 2);
+  document.getElementById("team").value = "";
+  document.getElementById("score").value = "";
+  renderJSON();
+}
 
-  document.getElementById('team').value = "";
-  document.getElementById('score').value = "";
+// 3️⃣ JSON 출력
+function renderJSON() {
+  document.getElementById("output").value =
+    JSON.stringify(teams, null, 2);
 }
 </script>
 </body>
