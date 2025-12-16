@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>관리자 | 팀 점수 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background:#020617;
+      color:#e5e7eb;
+      padding:20px;
+    }
+    h1 { text-align:center; }
+    .wrap { max-width:600px; margin:0 auto; }
+    input, button, textarea {
+      width:100%;
+      padding:14px;
+      margin-top:10px;
+      border-radius:10px;
+      border:none;
+      font-size:16px;
+    }
+    input, textarea {
+      background:#0f172a;
+      color:#fff;
+    }
+    button {
+      background:#22c55e;
+      font-weight:bold;
+      cursor:pointer;
+    }
+    button:hover { background:#16a34a; }
+    .btn-gray {
+      background:#334155;
+    }
+    .btn-gray:hover {
+      background:#475569;
+    }
+    .hint {
+      margin-top:15px;
+      font-size:13px;
+      color:#94a3b8;
+      line-height:1.6;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📝 팀 점수 관리자</h1>
+
+  <button class="btn-gray" onclick="loadFromGithub()">
+    🔄 현재 점수 불러오기
+  </button>
+
+  <input id="team" placeholder="팀명 (예: 레드팀)" />
+  <input id="score" type="number" placeholder="종합 점수" />
+
+  <button onclick="addOrUpdate()">팀 추가 / 점수 수정</button>
+
+  <textarea id="output" rows="12"
+    placeholder="최종 JSON이 여기에 생성됩니다"></textarea>
+
+  <div class="hint">
+    ✔ 점수 수정 후 아래 JSON 전체 복사<br>
+    ✔ GitHub → <b>data/scores.json</b>에 붙여넣기<br>
+    ✔ Commit 하면 전광판 자동 반영
+  </div>
+</div>
+
+<script>
+const DATA_URL =
+  "https://raw.githubusercontent.com/아이디/저장소명/main/data/scores.json";
+
+let teams = [];
+
+// 1️⃣ GitHub에 있는 현재 점수 불러오기
+async function loadFromGithub() {
+  try {
+    const res = await fetch(DATA_URL + "?t=" + Date.now());
+    teams = await res.json();
+    renderJSON();
+    alert("현재 점수를 불러왔습니다");
+  } catch {
+    alert("점수 불러오기 실패");
+  }
+}
+
+// 2️⃣ 팀 추가 또는 수정
+function addOrUpdate() {
+  const team = document.getElementById("team").value.trim();
+  const score = Number(document.getElementById("score").value);
+
+  if (!team || isNaN(score)) {
+    alert("팀명과 점수를 정확히 입력하세요");
+    return;
+  }
+
+  const existing = teams.find(t => t.team === team);
+  if (existing) {
+    existing.score = score;
+  } else {
+    teams.push({ team, score });
+  }
+
+  document.getElementById("team").value = "";
+  document.getElementById("score").value = "";
+  renderJSON();
+}
+
+// 3️⃣ JSON 출력
+function renderJSON() {
+  document.getElementById("output").value =
+    JSON.stringify(teams, null, 2);
+}
+</script>
+</body>
+</html>
